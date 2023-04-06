@@ -1,3 +1,7 @@
+import 'dart:developer';
+
+import 'package:darg_and_drop/object_movement.dart';
+import 'package:darg_and_drop/singleLine.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +21,8 @@ class _DragAndDropState extends State<DragAndDrop> {
   final String _color = "red";
 
   Offset? position;
+
+  LinePainter2? linePainter;
 
   @override
   void initState() {
@@ -41,6 +47,18 @@ class _DragAndDropState extends State<DragAndDrop> {
       child: SafeArea(
         child: Stack(
           children: <Widget>[
+            Positioned(
+              top: 10,
+              child: Container(
+                child: linePainter == null
+                    ? Container(
+                        color: Colors.grey.withOpacity(0.5),
+                      )
+                    : CustomPaint(
+                        foregroundPainter: linePainter,
+                      ),
+              ),
+            ),
             Positioned(
                 top: position!.dy - ballRadius - 15,
                 left: position!.dx,
@@ -76,7 +94,23 @@ class _DragAndDropState extends State<DragAndDrop> {
 
   void _onPanEnd(BuildContext context, DragEndDetails details) {
     print(details.velocity);
-    print(details.velocity.pixelsPerSecond);
+
+    final objectMovement = ObjectMovement(
+        x0: position!.dx,
+        y0: position!.dy,
+        v_x: details.velocity.pixelsPerSecond.dx,
+        v_y: details.velocity.pixelsPerSecond.dy);
+    final path = objectMovement.calculatePath(timeStep: 0.1, maxTime: 5);
+    log(path.toString());
+    // linePainter = LinePainter(
+    //   points: path,
+    // );
+    linePainter = LinePainter2(
+      start: Offset(path.first.x + ballRadius, path.first.y),
+      end: Offset(path.last.x + ballRadius, path.last.y),
+      strokeWidth: 2,
+      color: Colors.greenAccent,
+    );
   }
 
   void _onPanCancel(BuildContext context) {
